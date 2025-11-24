@@ -30,6 +30,7 @@ void onHelpClicked(uiMenuItem* item, void* data);
 
 //========== GLOBAL VARIABLE ==========
 	new_node* Head;
+	uiWindow* main_window_global;
 
 
 
@@ -53,12 +54,13 @@ int main(void) {
 
     uiWindow* main_window = uiNewWindow("Flist", 400, 600, 1);
     uiWindowSetMargined(main_window, 1);
+	main_window_global = main_window;
 
-	uiMenu* menubar_help = uiNewMenu(u8"도움말");
+	/*uiMenu* menubar_help = uiNewMenu(u8"도움말");
 	uiMenuItem* menubar_help_help = uiMenuAppendItem(menubar_help, u8"입력 방법");
 	
 
-	uiMenuItemOnClicked(menubar_help_help, onHelpClicked, main_window);
+	uiMenuItemOnClicked(menubar_help_help, onHelpClicked, main_window);*/
 
 	
 	
@@ -186,7 +188,7 @@ new_node* add_flight(new_node* head, char airlines[3], int f_num, char depart_a[
 		return node;
 	}
 
-	while ((now_node->next != NULL) && (now_node->depart_time < depart_t)) //출발 시간 순으로 항공편 위치 검사
+	while ((now_node->next != NULL) && (now_node->depart_time <= depart_t)) //출발 시간 순으로 항공편 위치 검사
 	{
 		now_node = now_node->next;
 	}
@@ -276,6 +278,22 @@ void onAddClicked(uiButton* b, void* data)
 	uiEntry* departtime_entry = (uiEntry*)entries[3];
 	uiEntry* arriveairport_entry = (uiEntry*)entries[4];
 	uiMultilineEntry* flight_list = (uiMultilineEntry*)entries[5];
+
+	new_node* now_node = Head;
+	char checker_airlines[3];
+	int flight_number = atoi(uiEntryText(flightnum_entry));
+
+	strncpy(checker_airlines, (char)entries[0]);
+	
+	while (now_node != NULL)
+	{
+		if ((strcmp(now_node->airlines, checker_airlines) == 0) && (now_node->flight_number == flight_number))
+		{
+			uiMsgBoxError(main_window_global, u8"오류", u8"이미 동일한 항공편이 존재합니다.");
+			return;
+		}
+		now_node = now_node->next;
+	}
 
 	char airlines[3];
 
