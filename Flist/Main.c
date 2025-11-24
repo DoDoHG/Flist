@@ -54,11 +54,11 @@ int main(void) {
     uiWindow* main_window = uiNewWindow("Flist", 400, 600, 1);
     uiWindowSetMargined(main_window, 1);
 
-	uiMenu* menubar_help = uiNewMenu(u8"도움말");
+	/*uiMenu* menubar_help = uiNewMenu(u8"도움말");
 	uiMenuItem* menubar_help_help = uiMenuAppendItem(menubar_help, u8"입력 방법");
 	
 
-	uiMenuItemOnClicked(menubar_help_help, onHelpClicked, main_window);
+	uiMenuItemOnClicked(menubar_help_help, onHelpClicked, main_window);*/
 
 	
 	
