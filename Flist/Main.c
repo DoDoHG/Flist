@@ -358,12 +358,12 @@ void refresh_list_ui(uiMultilineEntry* list)
 
 	while (now_node != NULL)
 	{
-		sprintf(temp, "%s%d  %s -> %s  %d\n",
+		sprintf(temp, "%s%d  %25s %25d  %25s\n",
 			now_node->airlines,
 			now_node->flight_number,
 			now_node->depart_airport,
-			now_node->arrive_airport,
-			now_node->depart_time
+			now_node->depart_time,
+			now_node->arrive_airport
 		);
 
 		uiMultilineEntryAppend(list, temp);
