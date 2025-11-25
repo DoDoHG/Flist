@@ -26,7 +26,7 @@ new_node* delete_flight(new_node* head, char airlines[3], int f_num);
 void onAddClicked(uiButton* b, void* data);
 void onDeleteClicked(uiButton* b, void* data);
 void refresh_list_ui(uiMultilineEntry* list);
-void onHelpClicked(uiMenuItem* item, uiWindow* window, void* data);
+void onHelpButtonClicked(uiButton* b, void* data);
 
 //========== GLOBAL VARIABLE ==========
 	new_node* Head;
@@ -68,12 +68,16 @@ int main(void) {
 	uiBoxSetPadded(main_ver_box, 1);
 	uiWindowSetChild(main_window, uiControl(main_ver_box));
 	
-
+	// 도움말 버튼
+    uiButton* help_input = uiNewButton(u8"입력 방법");
+    uiBoxAppend(main_ver_box, uiControl(help_input), 0);
+    uiButtonOnClicked(help_input, onHelpButtonClicked, main_window);
 
 	uiBox* mode_hor_box = uiNewHorizontalBox();
 	uiBoxSetPadded(mode_hor_box, 1);
 	uiBoxAppend(main_ver_box, uiControl(mode_hor_box), 0);
 
+	
 
 	//항공편 추가
 	uiGroup* add_flight = uiNewGroup(u8"항공편 추가");
@@ -294,10 +298,19 @@ void onAddClicked(uiButton* b, void* data)
 	new_node* now_node = Head;
 	char checker_airlines[3];
 	int flight_number = atoi(uiEntryText(flightnum_entry));
+	int depart_time = atoi(uiEntryText(departtime_entry));
 
 	strncpy(checker_airlines, uiEntryText(airlines_entry), sizeof(checker_airlines) - 1);
 
 	printf(u8"%s", checker_airlines);
+
+
+
+	if (sizeof(airlines_entry) > 3)
+	{
+		uiMsgBoxError(main_window_global, u8"오류", u8"항공사 코드가 잘못되었습니다.");
+		return;
+	}
 	
 	while (now_node != NULL)
 	{
@@ -307,6 +320,12 @@ void onAddClicked(uiButton* b, void* data)
 			return;
 		}
 		now_node = now_node->next;
+	}
+
+	if (((depart_time / 100) > 24) || ((depart_time % 100) > 60)) //입력 시간 검사
+	{
+		uiMsgBoxError(main_window_global, u8"오류", u8"시간 입력이 잘못되었습니다.");
+		return;
 	}
 
 	char airlines[3];
@@ -358,11 +377,12 @@ void refresh_list_ui(uiMultilineEntry* list)
 
 	while (now_node != NULL)
 	{
-		sprintf(temp, "%s%d  %25s %25d  %25s\n",
+		sprintf(temp, u8"%s%d  %25s %02d시 %02d분  %25s\n",
 			now_node->airlines,
 			now_node->flight_number,
 			now_node->depart_airport,
-			now_node->depart_time,
+			(now_node->depart_time / 100),
+			(now_node->depart_time % 100),
 			now_node->arrive_airport
 		);
 
@@ -371,7 +391,14 @@ void refresh_list_ui(uiMultilineEntry* list)
 	}
 }
 
-void onHelpClicked(uiMenuItem* item, uiWindow* window, void* data)
+//========== HELP BUTTON CALLBACK ==========
+void onHelpButtonClicked(uiButton* b, void* data)
 {
-	uiMsgBox(data, u8"도움말", u8"항공사 및 공항 입력시 IATA 코드를 사용해주세요.\n(예시: 대한항공: KE)\n\n출발 시각은 24시간 형식을 사용해주세요.\n(예: 오후4시 20분 -> 1620");
+	uiWindow* parent = (uiWindow*)data;
+	uiMsgBox(parent,
+		u8"입력 방법",
+		u8"항공사/공항: IATA 코드 (예: 대한항공 -> KE, 김포공항 -> GMP)\n"
+		u8"편명: 숫자\n"
+		u8"출발 시간: HHMM (예: 오후 3시 30분 -> 1530)\n"
+	);
 }
