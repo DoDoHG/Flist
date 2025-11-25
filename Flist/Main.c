@@ -23,6 +23,8 @@ typedef struct new_node {
 //========== FUNCTION ==========
 new_node* add_flight(new_node* head, char airlines[3], int f_num, char depart_a[4], int depart_t, char arrive_a[4]);
 new_node* delete_flight(new_node* head, char airlines[3], int f_num);
+void upper(char* str);
+int airport_check(char* airport, int locate);
 void onAddClicked(uiButton* b, void* data);
 void onDeleteClicked(uiButton* b, void* data);
 void refresh_list_ui(uiMultilineEntry* list);
@@ -52,23 +54,18 @@ int main(void) {
         return 1;
     }
 
+	//메인 창
     uiWindow* main_window = uiNewWindow("Flist", 400, 600, 1);
     uiWindowSetMargined(main_window, 1);
 	main_window_global = main_window;
-
-
-
-	/*uiMenu* menubar = uiNewMenu(u8"도움말");
-	uiMenuItem* help_item = uiMenuAppendItem(menubar, u8"입력 방법");
-	uiMenuItemOnClicked(help_item, onHelpClicked, main_window);*/
-
-
 
 	uiBox* main_ver_box = uiNewVerticalBox();
 	uiBoxSetPadded(main_ver_box, 1);
 	uiWindowSetChild(main_window, uiControl(main_ver_box));
 	
-	// 도움말 버튼
+
+
+	//입력 방법 버튼
     uiButton* help_input = uiNewButton(u8"입력 방법");
     uiBoxAppend(main_ver_box, uiControl(help_input), 0);
     uiButtonOnClicked(help_input, onHelpButtonClicked, main_window);
@@ -218,6 +215,7 @@ new_node* add_flight(new_node* head, char airlines[3], int f_num, char depart_a[
 		return head;
 	}
 
+	//중간 삽입
 	node->next = now_node;
 	node->prev = now_node->prev;
 
@@ -264,7 +262,7 @@ new_node* delete_flight(new_node* head, char airlines[3], int f_num)
 		return head;
 	}
 
-
+	//중간 삭제
 	now_node->prev->next = now_node->next;
 	now_node->next->prev = now_node->prev;
 
@@ -273,13 +271,40 @@ new_node* delete_flight(new_node* head, char airlines[3], int f_num)
 	return head;
 }
 
+void upper(char* str) //소문자를 대문자로 변환
+{
+	for (int i = 0; i < strlen(str); i++)
+	{
+		if ((str[i] >= 'a') && (str[i] <= 'z'))
+		{
+			str[i] -= 32;
+		}
+	}
+}
 
+int airport_check(char* airport, int locate) //공항 코드 검사
+{
+	char airport_loacate[10];
+	char error_message[64];
+	(locate == 0) ? strcpy(airport_loacate, u8"출발지") : strcpy(airport_loacate, u8"도착지");
+	sprintf(error_message, u8"%s 공항 코드가 잘못되었습니다.", airport_loacate);
 
+	if (strlen(airport) != 3) //길이 검사
+	{
+		uiMsgBoxError(main_window_global, u8"오류", error_message);
+		return 0;
+	}
+	for (int i = 0; i < strlen(airport); i++) //숫자 포함 검사
+	{
+		if ((48 <= airport[i]) && (airport[i] <= 57))
+		{
+			uiMsgBoxError(main_window_global, u8"오류", error_message);
+			return 0;
+		}
+	}
 
-
-
-
-
+	return 1;
+}
 
 
 
@@ -296,25 +321,30 @@ void onAddClicked(uiButton* b, void* data)
 	uiMultilineEntry* flight_list = (uiMultilineEntry*)entries[5];
 
 	new_node* now_node = Head;
-	char checker_airlines[3];
-	int flight_number = atoi(uiEntryText(flightnum_entry));
-	int depart_time = atoi(uiEntryText(departtime_entry));
+	char* check_airlines = uiEntryText(airlines_entry);
+	int check_flight_number = atoi(uiEntryText(flightnum_entry));
+	char* check_depart_airport = uiEntryText(departairport_entry);
+	int check_depart_time = atoi(uiEntryText(departtime_entry));
+	char* check_arrive_airport = uiEntryText(arriveairport_entry);
 
-	strncpy(checker_airlines, uiEntryText(airlines_entry), sizeof(checker_airlines) - 1);
+	upper(check_airlines);
+	upper(check_depart_airport);
+	upper(check_arrive_airport);
 
-	printf(u8"%s", checker_airlines);
-
-
-
-	if (sizeof(airlines_entry) > 3)
+	if (strlen(check_airlines) != 2) //항공사 코드 길이 검사
 	{
 		uiMsgBoxError(main_window_global, u8"오류", u8"항공사 코드가 잘못되었습니다.");
 		return;
 	}
-	
-	while (now_node != NULL)
+
+	if ((airport_check(check_depart_airport, 0) == 0) || (airport_check(check_arrive_airport, 1) == 0)) //공항 코드 검사
 	{
-		if ((strcmp(now_node->airlines, checker_airlines) == 0) && (now_node->flight_number == flight_number))
+		return;
+	}
+	
+	while (now_node != NULL) //중복 항공편 검사
+	{
+		if ((strcmp(now_node->airlines, check_airlines) == 0) && (now_node->flight_number == check_flight_number))
 		{
 			uiMsgBoxError(main_window_global, u8"오류", u8"이미 동일한 항공편이 존재합니다.");
 			return;
@@ -322,29 +352,36 @@ void onAddClicked(uiButton* b, void* data)
 		now_node = now_node->next;
 	}
 
-	if (((depart_time / 100) > 24) || ((depart_time % 100) > 60)) //입력 시간 검사
+	if (((check_depart_time / 100) > 23) || ((check_depart_time % 100) > 60)) //입력 시간 양식 검사
 	{
 		uiMsgBoxError(main_window_global, u8"오류", u8"시간 입력이 잘못되었습니다.");
 		return;
 	}
 
-	char airlines[3];
 
-	char depart[4];
-	char arrive[4];
-	int flightnum;
-	int departtime;
+
+	char airlines[3];
+	int flight_number;
+	char depart_airport[4];
+	int depart_time;
+	char arrive_airport[4];
 
 	strcpy(airlines, uiEntryText(airlines_entry));
-	strcpy(depart, uiEntryText(departairport_entry));
-	strcpy(arrive, uiEntryText(arriveairport_entry));
+	strcpy(depart_airport, uiEntryText(departairport_entry));
+	strcpy(arrive_airport, uiEntryText(arriveairport_entry));
 
-	flightnum = atoi(uiEntryText(flightnum_entry));
-	departtime = atoi(uiEntryText(departtime_entry));
+	flight_number = atoi(uiEntryText(flightnum_entry));
+	depart_time = atoi(uiEntryText(departtime_entry));
 
-	Head = add_flight(Head, airlines, flightnum, depart, departtime, arrive);
+	Head = add_flight(Head, airlines, flight_number, depart_airport, depart_time, arrive_airport);
 
 	refresh_list_ui(flight_list);
+
+	uiEntrySetText(airlines_entry, "");
+	uiEntrySetText(flightnum_entry, "");
+	uiEntrySetText(departairport_entry, "");
+	uiEntrySetText(departtime_entry, "");
+	uiEntrySetText(arriveairport_entry, "");
 }
 
 //========== DELETE BUTTON CALLBACK ==========
@@ -356,15 +393,29 @@ void onDeleteClicked(uiButton* b, void* data)
 	uiEntry* flightnum_entry = (uiEntry*)entries[1];
 	uiMultilineEntry* flight_list = (uiMultilineEntry*)entries[2];
 
+	char* check_airlines = uiEntryText(airlines_entry);
+	int check_flight_number = atoi(uiEntryText(flightnum_entry));
+
+	upper(check_airlines);
+
+	if (strlen(check_airlines) != 2) //항공사 코드 길이 검사
+	{
+		uiMsgBoxError(main_window_global, u8"오류", u8"항공사 코드가 잘못되었습니다.");
+		return;
+	}
+
 	char airlines[3];
-	int flightnum;
+	int flight_number;
 
 	strcpy(airlines, uiEntryText(airlines_entry));
-	flightnum = atoi(uiEntryText(flightnum_entry));
+	flight_number = atoi(uiEntryText(flightnum_entry));
 
-	Head = delete_flight(Head, airlines, flightnum);
+	Head = delete_flight(Head, airlines, flight_number);
 
 	refresh_list_ui(flight_list);
+
+	uiEntrySetText(airlines_entry, "");
+	uiEntrySetText(flightnum_entry, "");
 }
 
 //========== LIST REFRESH ==========
