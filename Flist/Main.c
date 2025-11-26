@@ -1,5 +1,9 @@
-﻿//========== DEFINE ==========
+﻿//version 1.0
+
+//========== DEFINE ==========
 #define _CRT_SECURE_NO_WARNINGS
+
+#pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 //========== HEADER ==========
 #include <stdio.h>
@@ -30,6 +34,7 @@ int num_check(char* str);
 void add_flight_clicked(uiButton* b, void* data);
 void delete_flight_clicked(uiButton* b, void* data);
 void print_list(uiMultilineEntry* list);
+int window_close(uiWindow* w, void* data);
 void help_clicked(uiButton* b, void* data);
 
 //========== GLOBAL VARIABLE ==========
@@ -60,6 +65,8 @@ int main(void) {
     uiWindow* main_window = uiNewWindow("Flist", 400, 600, 1);
     uiWindowSetMargined(main_window, 1);
 	main_window_global = main_window;
+
+	uiWindowOnClosing(main_window, window_close, NULL);
 
 	uiBox* main_ver_box = uiNewVerticalBox();
 	uiBoxSetPadded(main_ver_box, 1);
@@ -487,6 +494,12 @@ void print_list(uiMultilineEntry* list)
 		uiMultilineEntryAppend(list, temp);
 		now_node = now_node->next;
 	}
+}
+
+int window_close(uiWindow* w, void* data)
+{
+	uiQuit();
+	return 1;
 }
 
 void help_clicked(uiButton* b, void* data)
