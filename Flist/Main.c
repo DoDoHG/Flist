@@ -1,9 +1,10 @@
 ﻿//version 1.0
 
+//========== PRAGMA ==========
+#pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+
 //========== DEFINE ==========
 #define _CRT_SECURE_NO_WARNINGS
-
-#pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 //========== HEADER ==========
 #include <stdio.h>
